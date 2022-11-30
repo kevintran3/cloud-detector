@@ -18,7 +18,7 @@ const (
 
 func (p *ProviderGoogle) Identify() string {
 	data, _ := os.ReadFile("/sys/class/dmi/id/product_name")
-	if strings.Contains(string(data), "Google") {
+	if strings.Contains(string(data), "Google") || len(os.Getenv("K_SERVICE")) > 0 || len(os.Getenv("GAE_ENV")) > 0 {
 		return ProviderNameGoogle
 	}
 	return ""
