@@ -37,14 +37,13 @@ func (p *ProviderGoogle) GetInfo() ProviderInfo {
 	}
 	if len(os.Getenv("K_SERVICE")) > 0 {
 		info.Product = ProductGoogleCloudRun
-		// Format projects/PROJECT-NUMBER/regions/REGION
-		info.Region = getGoogleMetaData("/computeMetadata/v1/instance/region")
-		return info
 	}
 	if len(os.Getenv("GAE_ENV")) > 0 {
 		info.Product = ProductGoogleAppEngine
 	}
-	info.Region = getGoogleMetaData("/computeMetadata/v1/instance/zone")
+	// Format projects/PROJECT-NUMBER/regions/REGION
+	GoogleRegion := getGoogleMetaData("/computeMetadata/v1/instance/region")
+	info.Region = strings.Split(GoogleRegion, "/")[3]
 	return info
 }
 
