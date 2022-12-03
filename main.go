@@ -2,6 +2,7 @@ package clouddetector
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"golang.org/x/sys/unix"
@@ -27,16 +28,16 @@ type Provider interface {
 }
 
 const (
-	ProviderNameAmazon       = "Amazon"
-	ProviderNameAzure        = "Azure"
-	ProviderNameGoogle       = "Google"
-	ProviderNameOracle       = "Oracle"
-	ProviderNameDigitalOcean = "DigitalOcean"
+	ProviderNameAmazon = "Amazon"
+	ProviderNameAzure  = "Azure"
+	ProviderNameGoogle = "Google"
+	ProviderNameOracle = "Oracle"
 )
 
 func IdentifyProvider() ProviderInfo {
 	providers := []Provider{
 		&ProviderAmazon{},
+		&ProviderAzure{},
 		&ProviderGoogle{},
 		&ProviderOracle{},
 	}
@@ -53,14 +54,12 @@ func GetHostInfo() map[string]string {
 	h := map[string]string{}
 
 	providerInfo := IdentifyProvider()
-	h["Cloud"] = providerInfo.Name
-	h["CloudProduct"] = providerInfo.Product
-	h["CloudRegion"] = providerInfo.Region
+	if len(providerInfo.Name) > 0 {
+		h["CLOUD"] = fmt.Sprintf("%s %s (%s)", providerInfo.Name, providerInfo.Product, providerInfo.Region)
+	}
 
 	ipInfo := getHostPublicIP()
-	h["IP"] = ipInfo.IP
-	h["IPISP"] = ipInfo.ISP + " - " + ipInfo.Org
-	h["IPLocation"] = ipInfo.Location
+	h["IP"] = fmt.Sprintf("%s (%s)", ipInfo.IP, ipInfo.Location)
 
 	u := unix.Utsname{}
 	if err := unix.Uname(&u); err == nil {
@@ -86,4 +85,25 @@ func getHostPublicIP() IPInfo {
 	info.ISP = data["isp"]
 	info.Location = data["city"] + ", " + data["regionName"] + ", " + data["country"]
 	return info
+}
+
+func getMetadata(method string, url string, headers map[string]string) map[string]string {
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		return nil
+	}
+	for h, v := range headers {
+		req.Header.Set(h, v)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil
+	}
+	defer resp.Body.Close()
+	var data map[string]string
+	err = json.NewDecoder(resp.Body).Decode(&data)
+	if err != nil {
+		return nil
+	}
+	return data
 }

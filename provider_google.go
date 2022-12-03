@@ -10,10 +10,10 @@ import (
 type ProviderGoogle struct{}
 
 const (
-	ProductGoogleAppEngine     = "Google App Engine"
-	ProductGoogleCloudRun      = "Google Cloud Run"
-	ProductGoogleCloudFunction = "Google Cloud Function"
-	ProductGoogleUnknown       = "Google"
+	ProductGoogleAppEngine     = "App Engine"
+	ProductGoogleCloudRun      = "Cloud Run"
+	ProductGoogleCloudFunction = "Cloud Function"
+	ProductGoogleUnknown       = ""
 )
 
 func (p *ProviderGoogle) Identify() string {

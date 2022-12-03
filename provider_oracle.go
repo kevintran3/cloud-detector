@@ -1,8 +1,6 @@
 package clouddetector
 
 import (
-	"encoding/json"
-	"net/http"
 	"os"
 	"strings"
 )
@@ -10,8 +8,8 @@ import (
 type ProviderOracle struct{}
 
 const (
-	ProductOracleOKE     = "Oracle Container Engine for Kubernetes"
-	ProductOracleUnknown = "Oracle"
+	ProductOracleOKE     = "Container Engine for Kubernetes"
+	ProductOracleUnknown = ""
 )
 
 func (p *ProviderOracle) Identify() string {
@@ -27,28 +25,8 @@ func (p *ProviderOracle) GetInfo() ProviderInfo {
 		Name:    ProviderNameOracle,
 		Product: ProductOracleUnknown,
 	}
-	data := getOracleMetadata()
+	data := getMetadata("GET", "http://169.254.169.254/opc/v2/instance/", map[string]string{"Authorization": "Bearer Oracle"})
 	info.Region = data["canonicalRegionName"]
 	info.Others = data
 	return info
-}
-
-func getOracleMetadata() map[string]string {
-	// Getting Oracle Metadata
-	req, err := http.NewRequest("GET", "http://169.254.169.254/opc/v2/instance/", nil)
-	if err != nil {
-		return nil
-	}
-	req.Header.Set("Authorization", "Bearer Oracle")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil
-	}
-	defer resp.Body.Close()
-	var data map[string]string
-	err = json.NewDecoder(resp.Body).Decode(&data)
-	if err != nil {
-		return nil
-	}
-	return data
 }
