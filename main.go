@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"runtime"
 
 	"golang.org/x/sys/unix"
 )
@@ -55,19 +56,18 @@ func GetHostInfo() map[string]string {
 
 	providerInfo := IdentifyProvider()
 	if len(providerInfo.Name) > 0 {
-		h["CLOUD"] = fmt.Sprintf("%s %s (%s)", providerInfo.Name, providerInfo.Product, providerInfo.Region)
+		providerInfoOthers, _ := json.Marshal(providerInfo.Others)
+		h["Provider"] = fmt.Sprintf("%s %s (%s) %s",
+			providerInfo.Name, providerInfo.Product, providerInfo.Region, providerInfoOthers)
 	}
 
 	ipInfo := getHostPublicIP()
-	h["IP"] = fmt.Sprintf("%s (%s)", ipInfo.IP, ipInfo.Location)
+	h["IP"] = fmt.Sprintf("%s - %s - %s", ipInfo.IP, ipInfo.ISP, ipInfo.Location)
 
 	u := unix.Utsname{}
 	if err := unix.Uname(&u); err == nil {
-		h["Machine"] = string(u.Machine[:])
-		h["Nodename"] = string(u.Nodename[:])
-		h["Release"] = string(u.Release[:])
-		h["Sysname"] = string(u.Sysname[:])
-		h["Version"] = string(u.Version[:])
+		h["OS"] = fmt.Sprintf("%s %s %s (%s) %s",
+			string(u.Sysname[:]), string(u.Machine[:]), string(u.Release[:]), string(u.Version[:]), runtime.Version())
 	}
 
 	return h
