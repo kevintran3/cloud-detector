@@ -56,9 +56,7 @@ func GetHostInfo() map[string]string {
 
 	providerInfo := IdentifyProvider()
 	if len(providerInfo.Name) > 0 {
-		providerInfoOthers, _ := json.Marshal(providerInfo.Others)
-		h["Provider"] = fmt.Sprintf("%s %s (%s) %s",
-			providerInfo.Name, providerInfo.Product, providerInfo.Region, providerInfoOthers)
+		h["Provider"] = fmt.Sprintf("%s %s (%s)", providerInfo.Name, providerInfo.Product, providerInfo.Region)
 	}
 
 	ipInfo := getHostPublicIP()
