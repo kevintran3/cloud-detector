@@ -25,8 +25,14 @@ func (p *ProviderOracle) GetInfo() ProviderInfo {
 		Name:    ProviderNameOracle,
 		Product: ProductOracleUnknown,
 	}
-	data := getMetadata("GET", "http://169.254.169.254/opc/v2/instance/", map[string]string{"Authorization": "Bearer Oracle"})
-	info.Region = data["canonicalRegionName"]
-	info.Others = data
+
+	IMDSv2Url := "http://169.254.169.254/opc/v2/instance/"
+	IMDSv2Headers := map[string]string{"Authorization": "Bearer Oracle"}
+
+	info.Region = getMetadata("GET", IMDSv2Url+"regionInfo", IMDSv2Headers)["regionIdentifier"]
+	if _, ok := getMetadata("GET", IMDSv2Url+"metadata", IMDSv2Headers)["oke-cluster-id"]; ok {
+		info.Product = ProductOracleOKE
+	}
+
 	return info
 }
