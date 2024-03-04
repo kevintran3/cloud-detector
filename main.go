@@ -59,9 +59,6 @@ func GetHostInfo() map[string]string {
 		h["Provider"] = fmt.Sprintf("%s %s (%s)", providerInfo.Name, providerInfo.Product, providerInfo.Region)
 	}
 
-	ipInfo := getHostPublicIP()
-	h["IP"] = fmt.Sprintf("%s - %s - %s", ipInfo.IP, ipInfo.ISP, ipInfo.Location)
-
 	u := unix.Utsname{}
 	if err := unix.Uname(&u); err == nil {
 		h["OS"] = fmt.Sprintf("%s %s %s (%s) %s",
@@ -69,20 +66,6 @@ func GetHostInfo() map[string]string {
 	}
 
 	return h
-}
-
-func getHostPublicIP() IPInfo {
-	// Getting Public IP detail
-	info := IPInfo{}
-	req, _ := http.NewRequest("GET", "http://ip-api.com/json/", nil)
-	resp, _ := http.DefaultClient.Do(req)
-	var data map[string]string
-	_ = json.NewDecoder(resp.Body).Decode(&data)
-	info.IP = data["query"]
-	info.Org = data["org"]
-	info.ISP = data["isp"]
-	info.Location = data["city"] + ", " + data["regionName"] + ", " + data["country"]
-	return info
 }
 
 func getMetadata(method string, url string, headers map[string]string) map[string]string {
